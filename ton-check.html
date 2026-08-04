@@ -237,7 +237,7 @@ ol.issues li::marker{font-family:var(--mono);font-size:11px;color:var(--stamp)}
         <label class="f"><span>Подпись (имя, должность)</span><input type="text" id="bb_sign" value="Имя Фамилия, менеджер по работе с дистрибьюторами NeoChoice"></label>
       </div>
       <label class="f"><span>Кто мы для адресата</span>
-        <textarea id="bb_position" rows="2">Бренд-владелец и поставщик. С дистрибьюторами (М-Сота и др.) говорим как партнёр по развитию категорий — не продавливаем, а согласовываем план и сроки. Статусом не давим, но и не заигрываем.</textarea>
+        <textarea id="bb_position" rows="2">Владелец бренда и поставщик. Для дистрибьютора — партнёр по категории: подбираем ассортимент, планируем акции, держим ритм поставок. Говорим цифрами, договариваемся на равных, выполняем соглашения.   </textarea>
       </label>
 
       <div class="slider-row"><span class="lbl">Формальность</span><input type="range" id="s_form" min="1" max="5" value="4"><span class="val" id="v_form"></span></div>
@@ -327,7 +327,7 @@ ol.issues li::marker{font-family:var(--mono);font-size:11px;color:var(--stamp)}
       </label>
 
       <label class="f"><span>Ваш черновик или тезисы</span>
-        <textarea id="draft" rows="6" placeholder="Пишите как удобно, хоть обрывками: «ДНС, счёт 4417 от 22.07 на 1 340 000, оплаты нет, отгрузка встала, нужен ответ до пятницы»."></textarea>
+        <textarea id="draft" rows="6" placeholder="Например: «Сеть Вега, поставка марта — 1 200 шт, оплата наполовину. Нужно решение по остатку до пятницы»."></textarea>
       </label>
 
       <div class="actions">
@@ -693,4 +693,35 @@ function renderScan(rows){
   };
   $('#clearShots').onclick=()=>{shots.length=0; renderShots(); scanOut.innerHTML='<div class="empty"><p>Добавьте один или несколько скриншотов — счёт, платёжку, переписку с бухгалтерией. Модуль вытащит суммы, номера документов и даты в таблицу, которую можно скопировать.</p></div>';};
 }
+</script>
+<style>
+body{padding-top:44px!important}
+#nc-xp{position:fixed;top:0;left:0;right:0;background:linear-gradient(90deg,#667eea,#764ba2);color:#fff;font:600 12px 'Courier New',monospace;letter-spacing:1px;padding:8px 14px;display:flex;justify-content:space-between;z-index:999}
+h1{background:linear-gradient(135deg,#667eea,#a78bfa,#ec4899);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+h1::before{content:'💎 '}
+body::after{content:'💎 ⌨️ ';position:fixed;bottom:10px;right:14px;opacity:.35;font-size:22px;pointer-events:none}
+</style>
+<div id="nc-xp"><span id="nc-lvl">🏅 Стажёр</span><span id="nc-x">0 XP · 🔥 0</span></div>
+<div id="nc-toast" style="position:fixed;top:40px;right:14px;z-index:999"></div>
+<script>
+(function(){
+var S=JSON.parse(localStorage.ncxp||'{"xp":0,"streak":0,"day":"","ach":{}}');
+var LV=[[0,'Стажёр'],[50,'Менеджер'],[120,'Директор'],[250,'CEO'],[500,'💎 Легенда']];
+function save(){localStorage.ncxp=JSON.stringify(S)}
+function ui(){var n=LV[0][1];LV.forEach(function(l){if(S.xp>=l[0])n=l[1]});
+document.getElementById('nc-lvl').textContent='🏅 '+n;
+document.getElementById('nc-x').textContent=S.xp+' XP · 🔥 '+S.streak}
+function toast(t){var d=document.createElement('div');d.textContent=t;d.style.cssText='background:#764ba2;color:#fff;padding:10px 16px;border-radius:10px;margin-bottom:6px;box-shadow:0 8px 24px rgba(0,0,0,.3)';document.getElementById('nc-toast').appendChild(d);setTimeout(function(){d.remove()},3000)}
+function xp(n){var t=new Date().toDateString(),y=new Date(Date.now()-864e5).toDateString();
+if(S.day!==t){S.streak=(S.day===y)?S.streak+1:1;S.day=t}
+S.xp+=n;toast('+'+n+' XP');
+if(!S.ach.a&&S.xp>=10){S.ach.a=1;S.xp+=25;toast('🏆 Ачивка: первое письмо!')}
+if(!S.ach.m&&S.xp>=100){S.ach.m=1;S.xp+=50;toast('🏆 Ачивка: 100 XP!')}
+save();ui()}
+document.addEventListener('click',function(e){var t=(e.target.textContent||'');
+if(t.indexOf('Написать письмо')>-1)xp(10);
+else if(t.indexOf('Проверить тон')>-1)xp(5);
+else if(t.indexOf('Мягче')>-1||t.indexOf('Жёстче')>-1||t.indexOf('Короче')>-1)xp(3)});
+ui();
+})();
 </script>
