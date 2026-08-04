@@ -233,8 +233,8 @@ ol.issues li::marker{font-family:var(--mono);font-size:11px;color:var(--stamp)}
       <h2>Бренд-бук <span class="n">01</span></h2>
 
       <div class="row2">
-        <label class="f"><span>Компания</span><input type="text" id="bb_company" value="NeoChoice"></label>
-        <label class="f"><span>Подпись (имя, должность)</span><input type="text" id="bb_sign" value="Имя Фамилия, менеджер по работе с дистрибьюторами NeoChoice"></label>
+        <label class="f"><span>Компания</span><input type="text" id="bb_company" value=""></label>
+        <label class="f"><span>Подпись (имя, должность)</span><input type="text" id="bb_sign" value="Имя Фамилия, менеджер по работе с дистрибьюторами "></label>
       </div>
       <label class="f"><span>Кто мы для адресата</span>
         <textarea id="bb_position" rows="2">Владелец бренда и поставщик. Для дистрибьютора — партнёр по категории: подбираем ассортимент, планируем акции, держим ритм поставок. Говорим цифрами, договариваемся на равных, выполняем соглашения.   </textarea>
@@ -723,5 +723,32 @@ if(t.indexOf('Написать письмо')>-1)xp(10);
 else if(t.indexOf('Проверить тон')>-1)xp(5);
 else if(t.indexOf('Мягче')>-1||t.indexOf('Жёстче')>-1||t.indexOf('Короче')>-1)xp(3)});
 ui();
+})();
+</script>
+<script>
+(function(){
+[].slice.call(document.querySelectorAll('select[data-nc]')).forEach(function(s){s.remove()});
+var P=[
+{n:'💎 Бриллиант',s:'Бриллиант',w:'Мы — премиальный бренд. Пишем уверенно, кратко и с достоинством: без суеты и давления, каждое слово на месте.',f:70,t:40,p:50,d:40},
+{n:'🤝 Партнёр',s:'Партнёр',w:'Мы — долгосрочный партнёр. Обсуждаем планы на равных, выполняем договорённости, ценим отношения выше разовой выгоды.',f:60,t:70,p:40,d:60},
+{n:'⚡ По сути',s:'По сути',w:'Ценим время. Только факты, цифры и сроки — без воды: суть партнёр видит в первом же абзаце.',f:50,t:30,p:70,d:30},
+{n:'🎩 Официально',s:'Официально',w:'Держим официальный тон: уважительно, точно, без эмоций. Всё по делу, со ссылками на договорённости и документы.',f:90,t:30,p:50,d:80},
+{n:'☀️ Дружелюбно',s:'Дружелюбно',w:'Пишем тепло и просто, как с хорошими знакомыми. Но деловую часть не забываем.',f:30,t:80,p:30,d:50},
+{n:'🔥 Требовательно',s:'Требовательно',w:'Чётко обозначаем требования: сроки, цифры, ответственность. Вежливо, но твёрдо — партнёры знают, что мы всегда доводим до конца.',f:60,t:20,p:90,d:60}
+];
+var ci=document.getElementById('bb_company')||([].slice.call(document.querySelectorAll('label')).filter(function(l){return /Компания/.test(l.textContent)})[0]||{}).querySelector?([].slice.call(document.querySelectorAll('label')).filter(function(l){return /Компания/.test(l.textContent)})[0]).querySelector('input'):null;
+var lab=ci?(ci.closest('label')||ci.parentElement):null;
+if(ci)ci.style.display='none';
+var sel=document.createElement('select');sel.setAttribute('data-nc','1');
+sel.style.cssText='width:100%;padding:10px;border:1px solid #ccc;border-radius:4px;background:#fff;margin-top:4px';
+P.forEach(function(p,i){var o=document.createElement('option');o.value=i;o.textContent=p.n;sel.appendChild(o)});
+if(lab){var sp=lab.querySelector('span');if(sp)sp.textContent='Стиль письма / отправитель';lab.appendChild(sel)}
+var ta=[].slice.call(document.querySelectorAll('textarea')).filter(function(t){return /Владелец бренда|партнёр по категории|премиальный бренд|долгосрочный партнёр/.test(t.value)})[0];
+var rg=[].slice.call(document.querySelectorAll('input[type=range]'));
+function ap(i){var p=P[i];if(ci)ci.value=p.s;if(ta)ta.value=p.w;
+if(rg[0])rg[0].value=p.f;if(rg[1])rg[1].value=p.t;if(rg[2])rg[2].value=p.p;if(rg[3])rg[3].value=p.d;
+rg.forEach(function(r){r.dispatchEvent(new Event('input'))});}
+sel.onchange=function(){ap(+sel.value)};
+ap(0);
 })();
 </script>
