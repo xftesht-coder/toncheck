@@ -1,6 +1,5 @@
-node_modules/
-venv/
-__pycache__/
-.env
-*.mp3
-*.wav
+_server_live.html
+_server_live.html.bak
+_new.html
+*.bak
+working-copy/
