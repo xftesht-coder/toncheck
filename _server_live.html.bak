@@ -212,21 +212,142 @@ ol.issues li::marker{font-family:var(--mono);font-size:11px;color:var(--stamp)}
 <div class="wrap">
 <header class="top">
   <div>
-    <div class="eyebrow">Считалка сумм</div>
+    <div class="eyebrow">Модуль корпоративной переписки</div>
     <h1>Тон-чек</h1>
-    <p>Считалка сумм и документов. Суммы, номера, даты — в таблицу.айлом.</p>
+    <p>Черновик или тезисы слева — готовое письмо в вашем тоне справа. Правила тона редактируются и сохраняются файлом.</p>
   </div>
   <div class="meta-line">Бренд-бук v1 · черновик<br>Канал: дистрибьюторы и сети</div>
 </header>
 
 <div class="tabs">
-  
-  <div class="tab active" data-tab="scan">02 · Цифры со скриншота</div>
+  <div class="tab active" data-tab="letters">01 · Письма</div>
+  <div class="tab" data-tab="scan">02 · Цифры со скриншота</div>
 </div>
 
-<div class="tabpane active" 
+<div class="tabpane active" id="pane-letters">
+<div class="grid">
 
-<div class="tabpane active" id="pane-scan">
+  <!-- ЛЕВО: БРЕНД-БУК -->
+  <div>
+    <div class="card">
+      <h2>Бренд-бук <span class="n">01</span></h2>
+
+      <div class="row2">
+        <label class="f"><span>Компания</span><input type="text" id="bb_company" value=""></label>
+        <label class="f"><span>Подпись (имя, должность)</span><input type="text" id="bb_sign" value="Имя Фамилия, менеджер по работе с дистрибьюторами "></label>
+      </div>
+      <label class="f"><span>Кто мы для адресата</span>
+        <textarea id="bb_position" rows="2">Владелец бренда и поставщик. Для дистрибьютора — партнёр по категории: подбираем ассортимент, планируем акции, держим ритм поставок. Говорим цифрами, договариваемся на равных, выполняем соглашения.   </textarea>
+      </label>
+
+      <div class="slider-row"><span class="lbl">Формальность</span><input type="range" id="s_form" min="1" max="5" value="4"><span class="val" id="v_form"></span></div>
+      <div class="slider-row"><span class="lbl">Теплота</span><input type="range" id="s_warm" min="1" max="5" value="3"><span class="val" id="v_warm"></span></div>
+      <div class="slider-row"><span class="lbl">Настойчивость</span><input type="range" id="s_push" min="1" max="5" value="3"><span class="val" id="v_push"></span></div>
+      <div class="slider-row"><span class="lbl">Детализация</span><input type="range" id="s_det" min="1" max="5" value="3"><span class="val" id="v_det"></span></div>
+
+      <details class="bb">
+        <summary>Формулы и обращение</summary>
+        <div class="body">
+          <label class="f"><span>Обращение</span><input type="text" id="bb_address" value="На «Вы», по имени и отчеству, если известно. Если пишем в отдел закупок или на общий адрес — «Коллеги». Название дистрибьютора не сокращаем и не искажаем («Вега-Трейд», не «Вега» и не «вега.трейд»)."></label>
+          <div class="row2">
+            <label class="f"><span>Приветствие</span><input type="text" id="bb_hello" value="Добрый день, {Имя Отчество}!"></label>
+            <label class="f"><span>Прощание</span><input type="text" id="bb_bye" value="С уважением,"></label>
+          </div>
+        </div>
+      </details>
+
+      <details class="bb">
+        <summary>Принципы письма</summary>
+        <div class="body">
+          <label class="f"><span>Правила — по одному в строке</span>
+            <textarea id="bb_rules" rows="9">Суть запроса — в первых двух предложениях, до всякой вежливости.
+Одно письмо — один вопрос. Не смешиваем оплату и отгрузку.
+Всегда конкретика: номер счёта или УПД, сумма, дата, что именно нужно сделать.
+Срок ответа называем явно и с датой: «до 12:00 в пятницу, 07.08».
+Не извиняемся без причины и не благодарим авансом.
+Давим фактом и сроком, а не эмоцией. Никакого капса и восклицательных знаков.
+Плохую новость даём прямо в первом абзаце и сразу с вариантом решения.
+Если чего-то ждём от себя — пишем, когда сделаем, не дожидаясь вопроса.</textarea>
+          </label>
+        </div>
+      </details>
+
+      <details class="bb">
+        <summary>Стоп-слова</summary>
+        <div class="body">
+          <label class="f"><span>Через запятую</span>
+            <textarea id="bb_stop" rows="4">заранее спасибо, простите за беспокойство, хотелось бы, не могли бы вы всё-таки, ASAP, срочно!!!, в очередной раз, как вы помните, денежки, счётик, я вас умоляю, надеюсь на понимание</textarea>
+          </label>
+          <div class="chiplist">
+            <span class="chip">письмо ≤ 150 слов</span>
+            <span class="chip">мессенджер ≤ 45 слов</span>
+          </div>
+        </div>
+      </details>
+
+      <div class="actions" style="margin-top:14px">
+        <button class="btn ghost sm" id="btnExport">Сохранить бренд-бук</button>
+        <button class="btn ghost sm" id="btnImport">Загрузить</button>
+        <input type="file" id="fileIn" accept=".json" hidden>
+      </div>
+    </div>
+  </div>
+
+  <!-- ПРАВО: РАБОЧАЯ ЗОНА -->
+  <div>
+    <div class="card">
+      <h2>Письмо <span class="n">02</span></h2>
+      <div class="row2">
+        <label class="f"><span>Сценарий</span>
+          <select id="scenario">
+            <option>Проверить оплату по счёту</option>
+            <option>Напомнить о просроченной дебиторке</option>
+            <option>Запросить сроки отгрузки / статус заказа</option>
+            <option>Согласовать цены, промо или бонус</option>
+            <option>Предложить новую категорию / расширение линейки</option>
+            <option>Обозначить срок или паузу по категории (не сейчас)</option>
+            <option>Ответить на претензию</option>
+            <option>Отказать в просьбе</option>
+            <option>Эскалация: третье обращение без ответа</option>
+            <option>Подтвердить договорённости после звонка</option>
+            <option>Без сценария — просто мой текст</option>
+          </select>
+        </label>
+        <label class="f"><span>Канал</span>
+          <select id="channel">
+            <option>Письмо на почту</option>
+            <option>Telegram / WhatsApp</option>
+            <option>Комментарий в EDI / портале сети</option>
+          </select>
+        </label>
+      </div>
+
+      <label class="f"><span>Входящее письмо — если отвечаете</span>
+        <textarea id="incoming" rows="4" placeholder="Вставьте текст, на который нужно ответить. Можно оставить пустым."></textarea>
+      </label>
+
+      <label class="f"><span>Ваш черновик или тезисы</span>
+        <textarea id="draft" rows="6" placeholder="Например: «Сеть Вега, поставка марта — 1 200 шт, оплата наполовину. Нужно решение по остатку до пятницы»."></textarea>
+      </label>
+
+      <div class="actions">
+        <button class="btn" data-act="write">Написать письмо</button>
+        <button class="btn ghost" data-act="check">Проверить тон</button>
+        <button class="btn ghost" data-act="soft">Мягче</button>
+        <button class="btn ghost" data-act="hard">Жёстче</button>
+        <button class="btn ghost" data-act="short">Короче</button>
+      </div>
+    </div>
+
+    <div id="out">
+      <div class="empty"><p>Здесь появится готовый текст. «Проверить тон» разбирает ваш черновик по правилам, остальные кнопки переписывают его.</p></div>
+    </div>
+  </div>
+</div>
+</div>
+</div><!-- /pane-letters -->
+
+<div class="tabpane" id="pane-scan">
   <div class="card">
     <h2>Скриншоты <span class="n">01</span></h2>
     <div class="dropzone" id="dropzone">
