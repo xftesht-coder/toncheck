@@ -1,5 +1,5 @@
-_server_live.html
-_server_live.html.bak
-_new.html
-*.bak
+node_modules/
 working-copy/
+*.bak
+_server_*
+_new.html
