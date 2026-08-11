@@ -366,6 +366,18 @@ ol.issues li::marker{font-family:var(--mono);font-size:11px;color:var(--stamp)}
         </select>
       </label>
     </div>
+    <details class="scankey" style="margin-top:12px">
+      <summary>API-ключ / режим (нужен для работы)</summary>
+      <p class="hint">По умолчанию модуль стучится на серверный прокси <code>/api/scan</code>. Если его нет — впишите свой Anthropic API-ключ (хранится только в этом браузере, не уходит на сайт). Ключ нужен только для прямого режима; через прокси он не требуется.</p>
+      <label class="f" style="display:block;margin:6px 0">Модель
+        <input id="scanModel" value="claude-sonnet-4-6" style="width:100%;padding:8px;border:1px solid var(--rule);border-radius:4px">
+      </label>
+      <label class="f" style="display:block;margin:6px 0">Anthropic API-ключ
+        <input id="scanKey" type="password" placeholder="sk-ant-..." style="width:100%;padding:8px;border:1px solid var(--rule);border-radius:4px">
+      </label>
+      <button class="btn sm" id="btnSaveKey">Сохранить ключ в браузере</button>
+      <span id="keyState" class="hint" style="margin-left:8px"></span>
+    </details>
   </div>
 
   <div id="scanOut">
@@ -577,6 +589,16 @@ function renderShots(){
   });
 }
 
+// --- scan key persistence (localStorage only, never sent to site) ---
+$('#scanKey').value = localStorage.scanKey||'';
+$('#scanModel').value = localStorage.scanModel||'claude-sonnet-4-6';
+$('#btnSaveKey').onclick=()=>{
+  const k=$('#scanKey').value.trim(), m=$('#scanModel').value.trim();
+  localStorage.scanKey=k; localStorage.scanModel=m;
+  $('#keyState').textContent = k ? 'Сохранено ✓ (только в этом браузере)' : 'Ключ очищен';
+  toast(k?'Ключ сохранён':'Ключ очищен');
+};
+
 const scanOut=$('#scanOut');
 const SCAN_TASK={
   all:`Извлеки из скриншота(ов) все числа, имеющие смысл: суммы денег, номера счетов/УПД/заказов, даты, проценты, количества. Игнорируй технический мусор (номера страниц, разрешение экрана и т.п.).`,
@@ -584,12 +606,11 @@ const SCAN_TASK={
   chat:`Это скриншот переписки. Извлеки все суммы денег и числа, о которых идёт речь в диалоге, и короткий контекст — о чём договорились или что обсуждают рядом с этим числом.`
 };
 
-$('#btnScan').onclick=async()=>{
-  if(!shots.length){ toast('Добавьте хотя бы один скриншот'); return; }
-  $('#btnScan').disabled=true;
-  scanOut.innerHTML='<div class="card"><div class="loading">Распознаю</div></div>';
+const SCAN_MODEL_DEFAULT='claude-sonnet-4-6';
+const PROXY_URL='/api/scan'; // server-side proxy (reads ANTHROPIC_API_KEY from env)
 
-  const mode=$('#scanMode').value;
+// Build the Anthropic messages payload from mode + screenshots
+function buildScanBody(mode, shots){
   const content=[
     ...shots.map(s=>({type:"image",source:{type:"base64",media_type:s.mime,data:s.b64}})),
     {type:"text",text:`${SCAN_TASK[mode]}
@@ -598,17 +619,41 @@ $('#btnScan').onclick=async()=>{
 [{"label":"что это за число (напр. «Сумма к оплате», «Номер счёта», «Дата»)","value":"само значение как есть на скриншоте","kind":"money"|"date"|"id"|"other","source":"на каком скриншоте, напр. «скрин 1», если он один — пусто"}]
 Если чисел несколько на одном скрине — перечисли все. Не выдумывай — только то, что реально видно.`}
   ];
+  return {model: $('#scanModel').value||SCAN_MODEL_DEFAULT, max_tokens:1500,
+    messages:[{role:"user",content}]};
+}
 
+// Call the API: try proxy first (no key needed in browser), fall back to direct-with-key
+async function scanCall(body, key){
+  // 1) proxy mode (server injects key) — works without exposing key in browser
   try{
-    const r=await fetch("https://api.anthropic.com/v1/messages",{
-      method:"POST",headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({model:"claude-sonnet-4-6",max_tokens:1000,
-        messages:[{role:"user",content}]})
-    });
-    if(!r.ok) throw new Error('HTTP '+r.status);
+    const r=await fetch(PROXY_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
+    if(r.ok) return r;
+    if(r.status!==404) return r; // proxy exists but errored (will throw below)
+  }catch(e){ /* proxy unreachable — fall through to direct */ }
+  // 2) direct mode (needs user key + CORS header)
+  if(!key) throw new Error('Нет ключа. Введите Anthropic API-ключ ниже — или поднимите серверный прокси /api/scan.');
+  return fetch("https://api.anthropic.com/v1/messages",{
+    method:"POST",
+    headers:{"Content-Type":"application/json","x-api-key":key,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},
+    body:JSON.stringify(body)
+  });
+}
+
+$('#btnScan').onclick=async()=>{
+  if(!shots.length){ toast('Добавьте хотя бы один скриншот'); return; }
+  $('#btnScan').disabled=true;
+  scanOut.innerHTML='<div class="card"><div class="loading">Распознаю</div></div>';
+  const key=(localStorage.scanKey||'').trim();
+  try{
+    const body=buildScanBody($('#scanMode').value, shots);
+    const r=await scanCall(body, key);
+    if(!r.ok){ let msg='HTTP '+r.status; try{ const j=await r.json(); msg+=(j.error&&j.error.message)?' — '+j.error.message:''; }catch(e){} throw new Error(msg); }
     const data=await r.json();
     const txt=data.content.map(i=>i.type==='text'?i.text:'').join('').replace(/```json|```/g,'').trim();
-    const rows=JSON.parse(txt);
+    let rows;
+    try{ rows=JSON.parse(txt); }catch(e){ throw new Error('Модель вернула не JSON: '+txt.slice(0,120)); }
+    if(!Array.isArray(rows)) throw new Error('Ожидался массив строк, пришло: '+txt.slice(0,120));
     renderScan(rows);
   }catch(e){
     scanOut.innerHTML='<div class="err">Не удалось распознать: '+esc(e.message)+'. Скриншоты не потеряны — нажмите «Распознать цифры» ещё раз.</div>';

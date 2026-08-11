@@ -1,0 +1,17 @@
+[Unit]
+Description=NeoChoice scan proxy (Anthropic OCR bridge)
+After=network.target
+
+[Service]
+Type=simple
+User=www-data
+WorkingDirectory=/var/www/tonecheck/server
+ExecStart=/usr/bin/node /var/www/tonecheck/server/scan-proxy.mjs
+Environment=ANTHROPIC_API_KEY=__PLACEHOLDER__
+Environment=SCAN_PROXY_PORT=8787
+Environment=SCAN_PROXY_MODEL=claude-sonnet-4-6
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target
